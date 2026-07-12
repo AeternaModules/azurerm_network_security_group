@@ -31,7 +31,7 @@ EOT
     name                = string
     resource_group_name = string
     tags                = optional(map(string))
-    security_rule = optional(object({
+    security_rule = optional(list(object({
       access                                     = string
       description                                = optional(string)
       destination_address_prefix                 = optional(string)
@@ -48,24 +48,8 @@ EOT
       source_application_security_group_ids      = optional(set(string))
       source_port_range                          = optional(string)
       source_port_ranges                         = optional(set(string))
-    }))
+    })))
   }))
-  validation {
-    condition = alltrue([
-      for k, v in var.network_security_groups : (
-        v.security_rule == null || (v.security_rule.description == null || (length(v.security_rule.description) >= 0 && length(v.security_rule.description) <= 140))
-      )
-    ])
-    error_message = "must be between 0 and 140 characters"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.network_security_groups : (
-        v.security_rule == null || (v.security_rule.priority >= 100 && v.security_rule.priority <= 4096)
-      )
-    ])
-    error_message = "must be between 100 and 4096"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_network_security_group's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
@@ -86,10 +70,16 @@ EOT
   #   source:    [from resourcegroups.ValidateName: invalid when len(value) == 0]
   # path: resource_group_name
   #   source:    [from resourcegroups.ValidateName] !matched
+  # path: security_rule.description
+  #   condition: length(value) >= 0 && length(value) <= 140
+  #   message:   must be between 0 and 140 characters
   # path: security_rule.protocol
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: security_rule.access
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
+  # path: security_rule.priority
+  #   condition: value >= 100 && value <= 4096
+  #   message:   must be between 100 and 4096
   # path: security_rule.direction
   #   source:    validation.StringInSlice value list is not a literal []string - likely a generated PossibleValuesFor*() helper; resolve separately
   # path: tags

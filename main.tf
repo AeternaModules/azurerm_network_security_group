@@ -7,7 +7,7 @@ resource "azurerm_network_security_group" "network_security_groups" {
   tags                = each.value.tags
 
   dynamic "security_rule" {
-    for_each = each.value.security_rule != null ? [each.value.security_rule] : []
+    for_each = each.value.security_rule != null ? each.value.security_rule : []
     content {
       access                                     = security_rule.value.access
       description                                = security_rule.value.description
